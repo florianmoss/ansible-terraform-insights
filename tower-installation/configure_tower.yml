@@ -26,3 +26,31 @@
       shell:
         cmd: ./setup.sh
         chdir: /opt/ansible-tower-setup-3.8.0-1/
+
+    - name: Install Prerequisites (zip)
+      dnf:
+        name: zip
+        state: present
+
+    - name: Install Prerequisites (unzip)
+      dnf:
+        name: unzip
+        state: present
+
+    - name: Download Terraform
+      get_url:
+        url: https://releases.hashicorp.com/terraform/0.14.0/terraform_0.14.0_linux_amd64.zip
+        dest: /tmp/terraform_0.14.0_linux_amd64.zip
+            
+    - name: Extract Terraform
+      unarchive:
+        src: /tmp/terraform_0.14.0_linux_amd64.zip
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Copy over the right inventory file
+      copy:
+        src: /tmp/terraform
+        dest: /usr/local/bin/terraform
+        mode: '0755'
+        remote_src: yes

@@ -1,0 +1,7 @@
+[tower]
+ec2-52-16-29-246.eu-west-1.compute.amazonaws.com ansible_host=52.16.29.246  # i-004ada8f8e88ef397
+
+[servers]
+ec2-46-51-145-165.eu-west-1.compute.amazonaws.com ansible_host=46.51.145.165 # i-016afb80e142dd22c
+ec2-34-251-204-144.eu-west-1.compute.amazonaws.com ansible_host=34.251.204.144 # i-03a1951ceb40eeb18
+ec2-54-170-67-38.eu-west-1.compute.amazonaws.com ansible_host=54.170.67.38 # i-0cb608fcbcb138680
