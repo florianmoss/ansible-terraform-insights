@@ -1,0 +1,26 @@
+{
+ "fields": [
+  {
+   "type": "string",
+   "id": "REDHAT_PORTAL_USERNAME",
+   "label": "RHN Username",
+   "secret": true
+  },
+  {
+   "type": "string",
+   "id": "REDHAT_PORTAL_PASSWORD",
+   "label": "RHN Password",
+   "secret": true
+  },
+  {
+   "type": "string",
+   "id": "INSIGHTS_DISPLAY_NAME",
+   "label": "Insights Hostname"
+  }
+ ],
+ "required": [
+  "REDHAT_PORTAL_USERNAME",
+  "REDHAT_PORTAL_PASSWORD",
+  "INSIGHTS_DISPLAY_NAME"
+ ]
+}

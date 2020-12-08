@@ -1,0 +1,131 @@
+---
+- name: Use Tower API to setup Project, Credential and Inventory
+  hosts: localhost
+  vars:
+    tower_target: "{{ groups['tower'][0] }}"
+  vars_prompt:
+    - name: aws_username
+      prompt: What is your AWS Access Key ID?
+    - name: aws_password
+      prompt: What is your AWS Secret Key?
+    - name: portal_username
+      prompt: What is your Red Hat Portal Username?
+    - name: portal_password
+      prompt: What is your Red Hat Portal Password?
+  gather_facts: no
+  collections:
+    - awx.awx
+
+  tasks:
+      - name: Add tower project
+        tower_project:
+          name: "Insights Demo"
+          description: "Demoing Insights and Ansible capabilities"
+          organization: "Default"
+          state: present
+          tower_username: "admin"
+          tower_password: "password"
+          tower_host: "{{ tower_target }}"
+          validate_certs: false
+          scm_type: git
+          scm_url: https://github.com/florianmoss/tower-insights-template.git
+        ignore_errors: yes
+
+      - name: Add AWS credential
+        tower_credential:
+          name: "AWS Authentication" 
+          credential_type: "Amazon Web Services"
+          organization: "Default"
+          tower_username: "admin"
+          tower_password: "password"
+          tower_host: "{{ tower_target }}"
+          validate_certs: false
+          inputs:
+            username: "{{ aws_username }}"
+            password: "{{ aws_password }}"
+
+      - name: Add tower inventory
+        tower_inventory:
+          name: "Insights AWS Server"
+          description: "Insights AWS Servers"
+          organization: "Default"
+          state: present
+          tower_username: "admin"
+          tower_password: "password"
+          tower_host: "{{ tower_target }}"
+          tower_verify_ssl: no
+
+      - name: Add an inventory source
+        tower_inventory_source:
+          name: "Dynamic AWS Inventory"
+          description: "Source for inventory"
+          inventory: "Insights AWS Server"
+          credential: "AWS Authentication"
+          overwrite: True
+          tower_username: "admin"
+          tower_password: "password"
+          tower_host: "{{ tower_target }}"
+          validate_certs: false
+          source: ec2
+          update_on_launch: yes
+  
+      - tower_credential_type:
+          name: "Red Hat Portal"
+          description: "Credentials for Red Hat Portal and Machine Name"
+          kind: cloud
+          inputs: "{{ lookup('file', 'files/fields.json') }}"
+          injectors: "{{ lookup('file', 'files/injector.json') }}"
+          state: present
+          tower_username: "admin"
+          tower_password: "password"
+          tower_host: "{{ tower_target }}"
+          validate_certs: false
+            
+      - name: Add RHN credential
+        tower_credential:
+          name: "RHN Authentication" 
+          credential_type: "Red Hat Portal"
+          organization: "Default"
+          tower_username: "admin"
+          tower_password: "password"
+          tower_host: "{{ tower_target }}"
+          validate_certs: false
+          inputs:
+            REDHAT_PORTAL_PASSWORD: "{{ portal_password}}"
+            REDHAT_PORTAL_USERNAME: "{{ portal_username }}"
+            INSIGHTS_DISPLAY_NAME: "Insights Host"
+
+      - name: Add AWS SSH credential
+        tower_credential:
+          name: "AWS SSH" 
+          credential_type: "Machine"
+          organization: "Default"
+          tower_username: "admin"
+          tower_password: "password"
+          tower_host: "{{ tower_target }}"
+          validate_certs: false
+          inputs:
+            ssh_key_data: "{{ lookup('file', 'files/insights-demo.pem') }}"
+
+      - name: Create Tower job template for registering Insights hosts
+        tower_job_template:
+          name: "Register RHEL Hosts"
+          job_type: "run"
+          organization: "Default"
+          inventory: "Insights AWS Server"
+          project: "Insights Demo"
+          playbook: "play.yml"
+          state: "present"
+          survey_enabled: yes
+          ask_variables_on_launch: yes
+          tower_username: "admin"
+          tower_password: "password"
+          tower_host: "{{ tower_target }}"
+          validate_certs: no
+          extra_vars:
+            autoconfig: False
+            authmethod: BASIC
+          credentials:
+            - "RHN Authentication"
+            - "AWS SSH"
+            

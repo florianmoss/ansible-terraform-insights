@@ -1,0 +1,28 @@
+---
+- name: Install Ansible Tower
+  hosts: tower
+  gather_facts: no
+  become: yes
+  remote_user: ec2-user
+
+  tasks:
+    - name: Download Ansible Tower
+      get_url:
+        url: https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-3.8.0-1.tar.gz
+        dest: /tmp/ansible-tower-setup-3.8.0-1.tar.gz
+   
+    - name: Extract Ansible Tower
+      unarchive:
+        src: /tmp/ansible-tower-setup-3.8.0-1.tar.gz
+        dest: /opt/
+        remote_src: yes
+
+    - name: Copy over the right inventory file
+      copy:
+        src: tower_config
+        dest: /opt/ansible-tower-setup-3.8.0-1/inventory
+
+    - name: Run the Tower installer
+      shell:
+        cmd: ./setup.sh
+        chdir: /opt/ansible-tower-setup-3.8.0-1/
